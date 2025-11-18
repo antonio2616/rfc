@@ -1,0 +1,97 @@
+# ============================
+# ARCHIVOS DEL SISTEMA PYTHON
+# ============================
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.log
+*.tmp
+*.bak
+
+# ============================
+# VIRTUAL ENVIRONMENTS
+# ============================
+venv/
+env/
+.venv/
+
+# ============================
+# BASE DE DATOS LOCAL
+# ============================
+ventas.db
+*.db
+*.sqlite3
+
+# ============================
+# CARPETAS TEMPORALES
+# ============================
+temp/
+tmp/
+cache/
+
+# ============================
+# EJECUTABLES Y BUILD (PYINSTALLER)
+# ============================
+dist/
+build/
+*.spec
+*.exe
+
+# ============================
+# PERFILES DE SELENIUM / CHROME
+# ============================
+perfil_selenium_whatsapp/
+chrome-data/
+selenium-profile/
+webdriver/
+chromedriver.exe
+chromedriver
+chromedriver_win32/
+chromedriver_linux64/
+chromedriver_mac64/
+
+# ============================
+# TICKETS GENERADOS (IMÁGENES)
+# ============================
+tickets/
+ticket_*.png
+ticket_*.jpg
+
+# ============================
+# ARCHIVOS DE CONFIGURACIÓN
+# ============================
+config.txt
+*.ini
+*.cfg
+*.json
+
+# ============================
+# ICONOS E IMÁGENES (opcionales)
+# ============================
+*.ico
+*.icns
+
+# ============================
+# ARCHIVOS DE BACKUP
+# ============================
+*.old
+*.backup
+
+# ============================
+# ARCHIVOS DEL EDITOR / IDE
+# ============================
+.vscode/
+.idea/
+*.code-workspace
+
+# ============================
+# SYSTEM FILES (WINDOWS)
+# ============================
+Thumbs.db
+Desktop.ini
+
+# ============================
+# SYSTEM FILES (MAC / LINUX)
+# ============================
+.DS_Store
