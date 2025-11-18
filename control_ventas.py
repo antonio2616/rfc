@@ -24,6 +24,118 @@ COLOR_DIVIDER = "#3C3C3C"   # líneas divisoras
 
 TOTAL_VENTA = 200
 
+def crear_driver_whatsapp():
+    opciones = Options()
+    opciones.debugger_address = "127.0.0.1:9222"
+
+    driver = webdriver.Chrome(
+        service=Service(ChromeDriverManager().install()),
+        options=opciones
+    )
+    return driver
+
+def enviar_aviso_selenium(numero):
+    try:
+        numero = numero.replace(" ", "").replace("-", "")
+
+        driver = crear_driver_whatsapp()
+
+        # Abrir el chat del cliente
+        driver.get(f"https://web.whatsapp.com/send?phone=52{numero}")
+        time.sleep(5)
+
+        # Encontrar caja de mensaje
+        caja = encontrar_caja_mensaje(driver)
+        if caja:
+            caja.click()
+            caja.send_keys("Hola, tu documento ya está listo para recogerlo en Ciber Lerdo.")
+            time.sleep(1)
+
+        # Encontrar botón enviar
+        enviar = encontrar_boton_enviar(driver)
+        if enviar:
+            enviar.click()
+            show_info("WhatsApp", "Mensaje de aviso enviado automáticamente.")
+            return
+
+        show_error("Error", "No se pudo encontrar el botón de enviar.")
+
+    except Exception as e:
+        show_error("Error", f"No se pudo enviar el mensaje:\n{e}")
+
+
+def encontrar_caja_mensaje(driver):
+    xpaths = [
+        "//div[@title='Escribe un mensaje']",
+        "//p[@class='selectable-text copyable-text']",
+        "//div[contains(@class,'copyable-text selectable-text')]",
+        "//div[@data-tab='10']",
+        "//footer//p",
+        "//footer//div[contains(@class,'selectable-text')]",
+        "//div[@aria-placeholder='Escribe un mensaje']",
+        "//div[contains(@aria-label,'mensaje')]",
+        "//div[contains(@class,'_ak1l')]",
+        "//div[contains(@class,'_ak1y')]",
+    ]
+
+    for xp in xpaths:
+        try:
+            return driver.find_element(By.XPATH, xp)
+        except:
+            pass
+
+    return None
+
+def encontrar_boton_enviar(driver):
+    xpaths = [
+        "//span[@data-icon='send']",
+        "//button[@aria-label='Enviar']",
+        "//span[contains(@data-icon,'send')]",
+        "//div[@aria-label='Enviar']",
+        "//div[@role='button']//*[name()='svg']",
+        "//button[contains(@class,'_ak1l')]",
+        "//button[@data-tab='6']",
+        "//span[@data-icon='send-outline']",
+    ]
+
+    for xp in xpaths:
+        try:
+            return driver.find_element(By.XPATH, xp)
+        except:
+            pass
+
+    return None
+
+def enviar_aviso_selenium(numero):
+    try:
+        numero = numero.replace(" ", "").replace("-", "")
+
+        driver = crear_driver_whatsapp()
+
+        driver.get("https://web.whatsapp.com")
+        time.sleep(12)  # cargar sesión
+
+        # Abrir chat del cliente
+        driver.get(f"https://web.whatsapp.com/send?phone=52{numero}")
+        time.sleep(10)
+
+        # Buscar caja de mensaje
+        caja = encontrar_caja_mensaje(driver)
+        if caja:
+            caja.click()
+            caja.send_keys("Hola, tu documento ya está listo para recogerlo en Ciber Lerdo.")
+            time.sleep(1)
+
+            # Buscar botón enviar
+            enviar = encontrar_boton_enviar(driver)
+            if enviar:
+                enviar.click()
+
+        show_info("WhatsApp", "Mensaje de aviso enviado automáticamente.")
+
+    except Exception as e:
+        show_error("Error", f"No se pudo enviar el mensaje:\n{e}")
+
 
 # ========================= BASE DE DATOS COMPARTIDA (MULTI-PC) ==============================
 def get_tickets_path():
@@ -643,6 +755,14 @@ btn_ticket = tk.Button(frame_btn, text="🧾 Generar TICKET",
                        command=generar_ticket)
 style_button(btn_ticket, base_color=COLOR_PRIMARY)
 btn_ticket.grid(row=0, column=1, padx=5)
+
+btn_avisar = tk.Button(frame_btn, text="Avisar",
+                       fg="white", width=18,
+                       font=("Consolas", 10),
+                       command=lambda: enviar_aviso_selenium(entry_telefono.get()))
+style_button(btn_avisar, base_color="#00A2FF", hover_color ="#63A6CC")
+btn_avisar.grid(row=0, column=3, padx=5)
+
 
 # ========================= INICIO ==============================
 init_db()
