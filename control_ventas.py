@@ -1,18 +1,24 @@
+import pyautogui
+import pyperclip
+import subprocess
+import time
+import tkinter as tk
+import webbrowser
+import sqlite3
+import sys
+import os
+
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
-import time
-import tkinter as tk
-import webbrowser
 from tkinter import ttk
 from PIL import Image, ImageDraw, ImageFont, ImageTk
-import sqlite3
 from datetime import datetime
-import sys
-import os
+
+
 
 # ========================= TEMA OSCURO ESTILO VS CODE / MATERIAL ==============================
 COLOR_BG      = "#1E1E1E"   # fondo VSCode
@@ -23,6 +29,69 @@ COLOR_PRIMARY = "#0A84FF"   # azul principal
 COLOR_DIVIDER = "#3C3C3C"   # líneas divisoras
 
 TOTAL_VENTA = 200
+
+def abrir_whatsapp_desktop():
+    try:
+        import winshell
+
+        # Obtener todos los accesos directos del menú inicio y escritorio
+        accesos = winshell.desktop(), winshell.start_menu()
+
+        for carpeta in accesos:
+            for root, dirs, files in os.walk(carpeta):
+                for f in files:
+                    if "WhatsApp" in f and f.endswith(".lnk"):
+                        acceso = os.path.join(root, f)
+                        shell = winshell.shortcut(acceso)
+                        destino = shell.path
+
+                        # Ejecutar usando explorer
+                        subprocess.Popen(["explorer.exe", destino])
+                        return True
+
+        show_error("Error", "No se encontró WhatsApp Desktop.")
+        return False
+
+    except Exception as e:
+        show_error("Error", f"No pude abrir WhatsApp Desktop:\n{e}")
+
+
+
+def enviar_aviso_desktop(numero):
+    import pyautogui
+    import pyperclip
+    import time
+
+    numero = numero.replace(" ", "").replace("-", "")
+
+    # Abrir WhatsApp Desktop UWP
+    abrir_whatsapp_desktop()
+    time.sleep(5)
+
+    # Buscar chat (Ctrl + F)
+    pyautogui.hotkey("ctrl", "f")
+    time.sleep(1)
+
+    # Escribir número
+    pyperclip.copy(numero)
+    pyautogui.hotkey("ctrl", "v")
+    time.sleep(1)
+
+    # Abrir conversación
+    pyautogui.press("enter")
+    time.sleep(1.5)
+
+    # Escribir mensaje
+    mensaje = "Hola, tu documento ya está listo para recogerlo en Ciber Lerdo."
+    pyperclip.copy(mensaje)
+    pyautogui.hotkey("ctrl", "v")
+    time.sleep(0.5)
+
+    # Enviar mensaje
+    pyautogui.press("enter")
+
+    show_info("WhatsApp", "Mensaje enviado exitosamente por WhatsApp Desktop.")
+
 
 def crear_driver_whatsapp():
     opciones = Options()
@@ -538,13 +607,13 @@ def actualizar_dashboard():
     
     
 #======================================Validacion=======================  
-def validar_telefono(event):
+def validar_anticipo(event):
     texto = entry_telefono.get()
 
     # Solo números
     if not texto.isdigit():
-        entry_telefono.delete(0, tk.END)
-        entry_telefono.insert(0, ''.join(filter(str.isdigit, texto)))
+        entry_anticipo.delete(0, tk.END)
+        entry_anticipo.insert(0, ''.join(filter(str.isdigit, texto)))
 
 
 def validar_telefono(event):
@@ -621,6 +690,7 @@ tk.Label(frame_tel, image=icon_tel, bg=COLOR_PANEL).pack(side="left", padx=(0, 8
 entry_telefono = tk.Entry(frame_tel, width=25, bg=COLOR_INPUT, fg=COLOR_TEXT,
                           insertbackground=COLOR_TEXT)
 entry_telefono.pack(side="left", fill="x", expand=False)
+entry_telefono.bind("<KeyRelease>", validar_telefono)
 set_placeholder(entry_telefono, "Número de teléfono")
 
 
@@ -642,9 +712,10 @@ tk.Label(frame_ant, image=icon_money, bg=COLOR_PANEL).pack(side="left", padx=(0,
 entry_anticipo = tk.Entry(frame_ant, width=25, bg=COLOR_INPUT, fg=COLOR_TEXT,
                           insertbackground=COLOR_TEXT)
 entry_anticipo.pack(side="left", fill="x", expand=False)
+entry_anticipo.bind("<KeyRelease>", validar_anticipo)
 set_placeholder(entry_anticipo, "Anticipo")
 
-entry_telefono.bind("<KeyRelease>", validar_telefono)
+
 
 
 # BOTÓN GUARDAR
@@ -744,22 +815,22 @@ frame_btn.pack(pady=10)
 
 btn_pagado = tk.Button(frame_btn, text="✅ Marcar PAGADO",
                        fg="white", width=18,
-                       font=("Consolas", 10),
+                       font=("Segoe UI Emoji", 10),
                        command=marcar_pagado)
 style_button(btn_pagado, base_color="#22863A", hover_color="#2EA043")
 btn_pagado.grid(row=0, column=0, padx=5)
 
 btn_ticket = tk.Button(frame_btn, text="🧾 Generar TICKET",
                        fg="white", width=18,
-                       font=("Consolas", 10),
+                       font=("Segoe UI Emoji", 10),
                        command=generar_ticket)
 style_button(btn_ticket, base_color=COLOR_PRIMARY)
 btn_ticket.grid(row=0, column=1, padx=5)
 
-btn_avisar = tk.Button(frame_btn, text="Avisar",
+btn_avisar = tk.Button(frame_btn, text=" 📢 Avisar",
                        fg="white", width=18,
-                       font=("Consolas", 10),
-                       command=lambda: enviar_aviso_selenium(entry_telefono.get()))
+                       font=("Segoe UI Emoji", 10),
+                       command=lambda: enviar_aviso_desktop(entry_telefono.get()))
 style_button(btn_avisar, base_color="#00A2FF", hover_color ="#63A6CC")
 btn_avisar.grid(row=0, column=3, padx=5)
 
