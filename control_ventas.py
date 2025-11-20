@@ -30,49 +30,135 @@ COLOR_DIVIDER = "#3C3C3C"   # líneas divisoras
 
 TOTAL_VENTA = 200
 
-def abrir_whatsapp_desktop():
+def enviar_ticket_whatsapp():
+    # Obtener número de teléfono de la tabla
+    telefono = obtener_telefono_seleccionado()
+    if not telefono:
+        return
+
+    telefono = telefono.replace(" ", "").replace("-", "")
+
+    # Obtener CURP para armar el nombre del archivo
+    sel = tabla.focus()
+    data = tabla.item(sel)["values"]
+    curp = data[2][:10].upper()
+    nombre_ticket = f"ticket_{curp}.png"
+    ruta_ticket = os.path.join(TICKETS_FOLDER, nombre_ticket)
+
+    # Validar existencia del ticket
+    if not os.path.exists(ruta_ticket):
+        show_error("Error", "Ese ticket aún no se ha generado.\nPrimero genera el ticket.")
+        return
+
+    # MENSAJE PREVIO AUTOMÁTICO
+    mensaje = "Hola, aquí está tu ticket de Ciber Lerdo. A continuación te lo envío."
+    mensaje_url = mensaje.replace(" ", "%20")
+
+    # LINK WHATSAPP WEB
+    url = f"https://web.whatsapp.com/send?phone=52{telefono}&text={mensaje_url}"
+
+    # Priorizar Chrome
+    chrome = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
+    chrome86 = r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"
+
+    if os.path.exists(chrome):
+        webbrowser.get(f'"{chrome}" --new-window %s').open(url)
+    elif os.path.exists(chrome86):
+        webbrowser.get(f'"{chrome86}" --new-window %s').open(url)
+    else:
+        webbrowser.open(url)
+
+    # ABRIR CARPETA DONDE ESTÁ EL TICKET
+    subprocess.Popen(f'explorer /select,"{ruta_ticket}"')
+
+    show_info(
+        "WhatsApp",
+        "WhatsApp Web se abrió correctamente.\n\n"
+        "⭐ Ya está escrito el mensaje previo.\n"
+        "⭐ El ticket está seleccionado en la carpeta.\n\n"
+        "👉 Arrastra el archivo al chat y presiona ENVIAR."
+    )
+
+
+def obtener_telefono_seleccionado():
+    sel = tabla.focus()
+    if not sel:
+        show_warning("Error", "Seleccione una venta primero.")
+        return None
+    
+    data = tabla.item(sel)["values"]
+    # posición 1 porque tu tabla es:
+    # ID (0), Teléfono (1), CURP (2), Anticipo (3)...
+    telefono = str(data[1])
+    return telefono
+
+def avisar_whatsapp_web():
+    numero = obtener_telefono_seleccionado()
+    if not numero:
+        return
+    
+    numero = numero.replace(" ", "").replace("-", "")
+    
+    mensaje = "Hola, tu documento ya está listo para recogerlo en Ciber Lerdo."
+    mensaje_url = mensaje.replace(" ", "%20")
+
+    url = f"https://web.whatsapp.com/send?phone=52{numero}&text={mensaje_url}"
+
+    # Abrir en Chrome si está instalado
+    chrome = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
+    chrome86 = r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"
+
+    if os.path.exists(chrome):
+        webbrowser.get(f'"{chrome}" --new-window %s').open(url)
+    elif os.path.exists(chrome86):
+        webbrowser.get(f'"{chrome86}" --new-window %s').open(url)
+    else:
+        # Si no hay Chrome, usar navegador por defecto
+        webbrowser.open(url)
+
+    show_info("WhatsApp", "Se abrió WhatsApp Web.\nSolo presiona ENVIAR.")
+
+
+""" def abrir_whatsapp_desktop():
     try:
-        import winshell
-
-        # Obtener todos los accesos directos del menú inicio y escritorio
-        accesos = winshell.desktop(), winshell.start_menu()
-
-        for carpeta in accesos:
-            for root, dirs, files in os.walk(carpeta):
-                for f in files:
-                    if "WhatsApp" in f and f.endswith(".lnk"):
-                        acceso = os.path.join(root, f)
-                        shell = winshell.shortcut(acceso)
-                        destino = shell.path
-
-                        # Ejecutar usando explorer
-                        subprocess.Popen(["explorer.exe", destino])
-                        return True
-
-        show_error("Error", "No se encontró WhatsApp Desktop.")
-        return False
-
+        subprocess.Popen([
+            "explorer.exe",
+            "shell:AppsFolder\\5319275A.WhatsAppDesktop_cv1g1gvanyjgm!App"
+        ])
+        return True
     except Exception as e:
         show_error("Error", f"No pude abrir WhatsApp Desktop:\n{e}")
-
-
-
-def enviar_aviso_desktop(numero):
+        return False
+ """
+""" def enviar_aviso_desktop(numero):
     import pyautogui
     import pyperclip
     import time
 
+    if not numero:
+        return
+
     numero = numero.replace(" ", "").replace("-", "")
 
-    # Abrir WhatsApp Desktop UWP
-    abrir_whatsapp_desktop()
-    time.sleep(5)
+    # Abrir WhatsApp Desktop
+    if not abrir_whatsapp_desktop():
+        return
 
-    # Buscar chat (Ctrl + F)
-    pyautogui.hotkey("ctrl", "f")
+    time.sleep(4)
+
+    # -------------------------
+    #   BUSCAR EL NÚMERO
+    # -------------------------
+    # Click en la barra de búsqueda
+    pyautogui.click(200, 150)
     time.sleep(1)
 
-    # Escribir número
+    # Limpiar barra
+    pyautogui.hotkey("ctrl", "a")
+    pyautogui.press("backspace")
+    time.sleep(0.3)
+
+    # Escribir solo el número del cliente
     pyperclip.copy(numero)
     pyautogui.hotkey("ctrl", "v")
     time.sleep(1)
@@ -81,19 +167,23 @@ def enviar_aviso_desktop(numero):
     pyautogui.press("enter")
     time.sleep(1.5)
 
-    # Escribir mensaje
+    # -------------------------
+    #   ENVIAR EL MENSAJE
+    # -------------------------
+    # Click en caja de mensaje
+    pyautogui.click(400, 700)
+    time.sleep(0.5)
+
     mensaje = "Hola, tu documento ya está listo para recogerlo en Ciber Lerdo."
     pyperclip.copy(mensaje)
     pyautogui.hotkey("ctrl", "v")
-    time.sleep(0.5)
+    time.sleep(0.4)
 
-    # Enviar mensaje
     pyautogui.press("enter")
 
     show_info("WhatsApp", "Mensaje enviado exitosamente por WhatsApp Desktop.")
-
-
-def crear_driver_whatsapp():
+ """
+""" def crear_driver_whatsapp():
     opciones = Options()
     opciones.debugger_address = "127.0.0.1:9222"
 
@@ -102,8 +192,8 @@ def crear_driver_whatsapp():
         options=opciones
     )
     return driver
-
-def enviar_aviso_selenium(numero):
+ """
+""" def enviar_aviso_selenium(numero):
     try:
         numero = numero.replace(" ", "").replace("-", "")
 
@@ -131,9 +221,8 @@ def enviar_aviso_selenium(numero):
 
     except Exception as e:
         show_error("Error", f"No se pudo enviar el mensaje:\n{e}")
-
-
-def encontrar_caja_mensaje(driver):
+ """
+""" def encontrar_caja_mensaje(driver):
     xpaths = [
         "//div[@title='Escribe un mensaje']",
         "//p[@class='selectable-text copyable-text']",
@@ -154,8 +243,8 @@ def encontrar_caja_mensaje(driver):
             pass
 
     return None
-
-def encontrar_boton_enviar(driver):
+ """
+""" def encontrar_boton_enviar(driver):
     xpaths = [
         "//span[@data-icon='send']",
         "//button[@aria-label='Enviar']",
@@ -174,37 +263,7 @@ def encontrar_boton_enviar(driver):
             pass
 
     return None
-
-def enviar_aviso_selenium(numero):
-    try:
-        numero = numero.replace(" ", "").replace("-", "")
-
-        driver = crear_driver_whatsapp()
-
-        driver.get("https://web.whatsapp.com")
-        time.sleep(12)  # cargar sesión
-
-        # Abrir chat del cliente
-        driver.get(f"https://web.whatsapp.com/send?phone=52{numero}")
-        time.sleep(10)
-
-        # Buscar caja de mensaje
-        caja = encontrar_caja_mensaje(driver)
-        if caja:
-            caja.click()
-            caja.send_keys("Hola, tu documento ya está listo para recogerlo en Ciber Lerdo.")
-            time.sleep(1)
-
-            # Buscar botón enviar
-            enviar = encontrar_boton_enviar(driver)
-            if enviar:
-                enviar.click()
-
-        show_info("WhatsApp", "Mensaje de aviso enviado automáticamente.")
-
-    except Exception as e:
-        show_error("Error", f"No se pudo enviar el mensaje:\n{e}")
-
+ """
 
 # ========================= BASE DE DATOS COMPARTIDA (MULTI-PC) ==============================
 def get_tickets_path():
@@ -581,7 +640,7 @@ def actualizar_dashboard():
     conn = sqlite3.connect(DB_NAME)
     c = conn.cursor()
 
-    hoy = datetime.now().strftime("%Y-%m-%d")
+    hoy = datetime.now().strftime("%d-%m-%Y")
 
     t, a, r = conn.execute(
         "SELECT COUNT(*), SUM(anticipo), SUM(resto) FROM ventas WHERE fecha LIKE ?",
@@ -813,26 +872,34 @@ tabla.tag_configure("pagado", background="#1E4A1E", foreground="#A5EFA5")
 frame_btn = tk.Frame(root, bg=COLOR_BG)
 frame_btn.pack(pady=10)
 
-btn_pagado = tk.Button(frame_btn, text="✅ Marcar PAGADO",
-                       fg="white", width=18,
+btn_pagado = tk.Button(frame_btn, text="✅ Marcar Pagado",
+                       fg="black", width=18,
                        font=("Segoe UI Emoji", 10),
                        command=marcar_pagado)
-style_button(btn_pagado, base_color="#22863A", hover_color="#2EA043")
+style_button(btn_pagado, base_color="#22C55E", hover_color="#16A34A")
 btn_pagado.grid(row=0, column=0, padx=5)
 
-btn_ticket = tk.Button(frame_btn, text="🧾 Generar TICKET",
+btn_ticket = tk.Button(frame_btn, text="🧾 Generar Ticket",
                        fg="white", width=18,
                        font=("Segoe UI Emoji", 10),
                        command=generar_ticket)
-style_button(btn_ticket, base_color=COLOR_PRIMARY)
+style_button(btn_ticket, base_color="#2563EB", hover_color="#1D4ED8")
 btn_ticket.grid(row=0, column=1, padx=5)
 
-btn_avisar = tk.Button(frame_btn, text=" 📢 Avisar",
-                       fg="white", width=18,
+btn_ticket_whatsapp = tk.Button(frame_btn, text="📨 Enviar Ticket",
+                       fg="black", width=18,
                        font=("Segoe UI Emoji", 10),
-                       command=lambda: enviar_aviso_desktop(entry_telefono.get()))
-style_button(btn_avisar, base_color="#00A2FF", hover_color ="#63A6CC")
-btn_avisar.grid(row=0, column=3, padx=5)
+                       command=enviar_ticket_whatsapp)
+style_button(btn_ticket_whatsapp, base_color="#06B6D4", hover_color="#0891B2")
+btn_ticket_whatsapp.grid(row=0, column=3, padx=5)
+
+
+btn_avisar = tk.Button(frame_btn, text=" 📢 Avisar",
+                       fg="black", width=18,
+                       font=("Segoe UI Emoji", 10),
+                       command= avisar_whatsapp_web)
+style_button(btn_avisar, base_color="#E9BD0D", hover_color ="#EAB308")
+btn_avisar.grid(row=0, column=5, padx=5)
 
 
 # ========================= INICIO ==============================
