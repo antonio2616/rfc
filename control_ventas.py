@@ -774,6 +774,31 @@ entry_anticipo.pack(side="left", fill="x", expand=False)
 entry_anticipo.bind("<KeyRelease>", validar_anticipo)
 set_placeholder(entry_anticipo, "Anticipo")
 
+# ========================= TIPO DE DOCUMENTO =============================
+tipo_var = tk.StringVar(value="ACTA")
+
+frame_tipo = tk.Frame(panel_registro, bg=COLOR_PANEL)
+frame_tipo.pack(fill="x", padx=10, pady=5)
+
+tk.Label(frame_tipo, text="Tipo de documento:",
+         bg=COLOR_PANEL, fg=COLOR_PRIMARY,
+         font=("Consolas", 11, "bold")).pack(anchor="w")
+
+tk.Radiobutton(frame_tipo, text="ACTA 📘",
+               variable=tipo_var, value="ACTA",
+               bg=COLOR_PANEL, fg=COLOR_TEXT,
+               selectcolor=COLOR_INPUT,
+               font=("Consolas", 10),
+               activebackground=COLOR_PANEL).pack(anchor="w")
+
+tk.Radiobutton(frame_tipo, text="RFC 🟧",
+               variable=tipo_var, value="RFC",
+               bg=COLOR_PANEL, fg=COLOR_TEXT,
+               selectcolor=COLOR_INPUT,
+               font=("Consolas", 10),
+               activebackground=COLOR_PANEL).pack(anchor="w")
+
+
 
 
 
