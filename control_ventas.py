@@ -418,6 +418,7 @@ def init_db():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             telefono TEXT NOT NULL,
             curp TEXT NOT NULL,
+            tipo TEXT NOT NULL,
             anticipo REAL NOT NULL,
             resto REAL NOT NULL,
             estado TEXT NOT NULL,
@@ -453,8 +454,8 @@ def guardar_venta():
 
     conn = sqlite3.connect(DB_NAME)
     c = conn.cursor()
-    c.execute("INSERT INTO ventas (telefono, curp, anticipo, resto, estado, fecha) VALUES (?,?,?,?,?,?)",
-              (tel, curp, anticipo, resto, estado, fecha))
+    c.execute("INSERT INTO ventas (telefono, curp, anticipo, resto, estado, fecha, tipo) VALUES (?,?,?,?,?,?,?)",
+              (tel, curp, anticipo, resto, estado, fecha, tipo_var.get()))
     conn.commit()
     conn.close()
 
@@ -539,11 +540,11 @@ def generar_ticket():
 
     conn = sqlite3.connect(DB_NAME)
     c = conn.cursor()
-    c.execute("SELECT telefono, curp, anticipo, resto, estado, fecha FROM ventas WHERE id=?", (vid,))
+    c.execute("SELECT telefono, curp, anticipo, resto, estado, tipo, fecha FROM ventas WHERE id=?", (vid,))
     data = c.fetchone()
     conn.close()
 
-    telefono, curp, anticipo, resto, estado, fecha = data
+    telefono, curp, anticipo, resto, estado, tipo, fecha = data
 
     # Ajuste 58mm (384 px)
     W, H = 384, 700
@@ -607,6 +608,10 @@ def generar_ticket():
 
     draw.text((25, y), f"CURP:  {curp}", font=font_text, fill="black")
     y += 40
+
+    draw.text((25, y), f"Doc. Solicitado:  {tipo}", font=font_text, fill="black")
+    y += 28
+
 
     # Línea
     draw.line((20, y, W - 20, y), fill="black", width=2)
@@ -774,32 +779,32 @@ entry_anticipo.pack(side="left", fill="x", expand=False)
 entry_anticipo.bind("<KeyRelease>", validar_anticipo)
 set_placeholder(entry_anticipo, "Anticipo")
 
-# ========================= TIPO DE DOCUMENTO =============================
-tipo_var = tk.StringVar(value="ACTA")
 
+# ======================= TIPO DE DOCUMENTO =======================
 frame_tipo = tk.Frame(panel_registro, bg=COLOR_PANEL)
-frame_tipo.pack(fill="x", padx=10, pady=5)
+frame_tipo.pack(fill="x", padx=10, pady=(5, 10))
 
 tk.Label(frame_tipo, text="Tipo de documento:",
          bg=COLOR_PANEL, fg=COLOR_PRIMARY,
-         font=("Consolas", 11, "bold")).pack(anchor="w")
+         font=("Consolas", 10, "bold")).pack(anchor="w")
 
-tk.Radiobutton(frame_tipo, text="ACTA 📘",
-               variable=tipo_var, value="ACTA",
-               bg=COLOR_PANEL, fg=COLOR_TEXT,
-               selectcolor=COLOR_INPUT,
-               font=("Consolas", 10),
-               activebackground=COLOR_PANEL).pack(anchor="w")
+tipo_doc = tk.StringVar(value="ACTA")   # valor por defecto
 
-tk.Radiobutton(frame_tipo, text="RFC 🟧",
-               variable=tipo_var, value="RFC",
-               bg=COLOR_PANEL, fg=COLOR_TEXT,
-               selectcolor=COLOR_INPUT,
-               font=("Consolas", 10),
-               activebackground=COLOR_PANEL).pack(anchor="w")
+op1 = tk.Radiobutton(frame_tipo, text="ACTA",
+                     variable=tipo_doc, value="ACTA",
+                     bg=COLOR_PANEL, fg=COLOR_TEXT,
+                     activebackground=COLOR_PANEL,
+                     selectcolor=COLOR_BG,
+                     font=("Consolas", 10))
+op1.pack(anchor="w")
 
-
-
+op2 = tk.Radiobutton(frame_tipo, text="RFC",
+                     variable=tipo_doc, value="RFC",
+                     bg=COLOR_PANEL, fg=COLOR_TEXT,
+                     activebackground=COLOR_PANEL,
+                     selectcolor=COLOR_BG,
+                     font=("Consolas", 10))
+op2.pack(anchor="w")
 
 
 # BOTÓN GUARDAR
@@ -873,7 +878,7 @@ style.map("Treeview",
           background=[("selected", "#264F78")],
           foreground=[("selected", "white")])
 
-cols = ("ID","Teléfono","CURP","Anticipo","Resta","Estado","Fecha")
+cols = ("ID","Teléfono","CURP","Tipo","Anticipo","Resta","Estado","Fecha")
 tabla = ttk.Treeview(root, columns=cols, show="headings", height=12)
 tabla.pack(pady=10, padx=10, fill="x")
 
@@ -883,6 +888,7 @@ for col in cols:
 tabla.column("ID", width=40, anchor="center")
 tabla.column("Teléfono", width=110)
 tabla.column("CURP", width=140)
+tabla.column("Tipo", width=80, anchor="center")
 tabla.column("Anticipo", width=80, anchor="e")
 tabla.column("Resta", width=80, anchor="e")
 tabla.column("Estado", width=100, anchor="center")
