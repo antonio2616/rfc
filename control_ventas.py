@@ -438,6 +438,8 @@ def guardar_venta():
         show_warning("Error", "Todos los campos son obligatorios.")
         return
 
+#up
+
     try:
         anticipo = float(anticipo_txt)
     except:
