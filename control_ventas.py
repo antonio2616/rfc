@@ -749,64 +749,71 @@ icon_tel = ImageTk.PhotoImage(file=resource_path("phone.png"))
 icon_curp = ImageTk.PhotoImage(file=resource_path("curp.png"))
 icon_money = ImageTk.PhotoImage(file=resource_path("money.png"))
 
+# ==== CONTENEDOR PRINCIPAL DE CAMPOS: 2 COLUMNAS ====
+contenedor = tk.Frame(panel_registro, bg=COLOR_PANEL)
+contenedor.pack(fill="x", padx=10, pady=10)
+
+# ============================================
+# COLUMNA IZQUIERDA (TEL / CURP / ANTICIPO)
+# ============================================
+col_izq = tk.Frame(contenedor, bg=COLOR_PANEL)
+col_izq.grid(row=0, column=0, sticky="nw")
+
 # TELÉFONO
-frame_tel = tk.Frame(panel_registro, bg=COLOR_PANEL)
-frame_tel.pack(fill="x", padx=10, pady=10)
+frame_tel = tk.Frame(col_izq, bg=COLOR_PANEL)
+frame_tel.pack(fill="x", pady=5)
 tk.Label(frame_tel, image=icon_tel, bg=COLOR_PANEL).pack(side="left", padx=(0, 8))
 entry_telefono = tk.Entry(frame_tel, width=25, bg=COLOR_INPUT, fg=COLOR_TEXT,
                           insertbackground=COLOR_TEXT)
-entry_telefono.pack(side="left", fill="x", expand=False)
+entry_telefono.pack(side="left")
 entry_telefono.bind("<KeyRelease>", validar_telefono)
 set_placeholder(entry_telefono, "Número de teléfono")
 
-
-
 # CURP
-frame_curp = tk.Frame(panel_registro, bg=COLOR_PANEL)
-frame_curp.pack(fill="x", padx=10, pady=5)
+frame_curp = tk.Frame(col_izq, bg=COLOR_PANEL)
+frame_curp.pack(fill="x", pady=5)
 tk.Label(frame_curp, image=icon_curp, bg=COLOR_PANEL).pack(side="left", padx=(0, 8))
 entry_curp = tk.Entry(frame_curp, width=25, bg=COLOR_INPUT, fg=COLOR_TEXT,
                       insertbackground=COLOR_TEXT)
-entry_curp.pack(side="left", fill="x", expand=False)
+entry_curp.pack(side="left")
 entry_curp.bind("<KeyRelease>", validar_curp)
 set_placeholder(entry_curp, "CURP del cliente")
 
 # ANTICIPO
-frame_ant = tk.Frame(panel_registro, bg=COLOR_PANEL)
-frame_ant.pack(fill="x", padx=10, pady=5)
+frame_ant = tk.Frame(col_izq, bg=COLOR_PANEL)
+frame_ant.pack(fill="x", pady=5)
 tk.Label(frame_ant, image=icon_money, bg=COLOR_PANEL).pack(side="left", padx=(0, 8))
 entry_anticipo = tk.Entry(frame_ant, width=25, bg=COLOR_INPUT, fg=COLOR_TEXT,
                           insertbackground=COLOR_TEXT)
-entry_anticipo.pack(side="left", fill="x", expand=False)
+entry_anticipo.pack(side="left")
 entry_anticipo.bind("<KeyRelease>", validar_anticipo)
 set_placeholder(entry_anticipo, "Anticipo")
 
+# ============================================
+# COLUMNA DERECHA (TIPO DE DOCUMENTO)
+# ============================================
+col_der = tk.Frame(contenedor, bg=COLOR_PANEL)
+col_der.grid(row=0, column=1, padx=(30,0), sticky="nw")
 
-# ======================= TIPO DE DOCUMENTO =======================
-frame_tipo = tk.Frame(panel_registro, bg=COLOR_PANEL)
-frame_tipo.pack(fill="x", padx=10, pady=(5, 10))
+lbl_tipo = tk.Label(col_der, text="Tipo de documento:",
+                    bg=COLOR_PANEL, fg=COLOR_PRIMARY,
+                    font=("Consolas", 12, "bold"))
+lbl_tipo.pack(anchor="w", pady=(0,5))
 
-tk.Label(frame_tipo, text="Tipo de documento:",
-         bg=COLOR_PANEL, fg=COLOR_PRIMARY,
-         font=("Consolas", 10, "bold")).pack(anchor="w")
+opcion_doc = tk.StringVar(value="ACTA")
 
-tipo_doc = tk.StringVar(value="ACTA")   # valor por defecto
+frame_radios = tk.Frame(col_der, bg=COLOR_PANEL)
+frame_radios.pack(anchor="w")
 
-op1 = tk.Radiobutton(frame_tipo, text="ACTA",
-                     variable=tipo_doc, value="ACTA",
-                     bg=COLOR_PANEL, fg=COLOR_TEXT,
-                     activebackground=COLOR_PANEL,
-                     selectcolor=COLOR_BG,
-                     font=("Consolas", 10))
-op1.pack(anchor="w")
+rb_acta = tk.Radiobutton(frame_radios, text="ACTA", variable=opcion_doc, value="ACTA",
+                         bg=COLOR_PANEL, fg=COLOR_TEXT, selectcolor=COLOR_PANEL,
+                         activebackground=COLOR_PANEL, font=("Consolas", 10))
+rb_acta.pack(side="left", padx=(0,20))
 
-op2 = tk.Radiobutton(frame_tipo, text="RFC",
-                     variable=tipo_doc, value="RFC",
-                     bg=COLOR_PANEL, fg=COLOR_TEXT,
-                     activebackground=COLOR_PANEL,
-                     selectcolor=COLOR_BG,
-                     font=("Consolas", 10))
-op2.pack(anchor="w")
+rb_rfc = tk.Radiobutton(frame_radios, text="RFC", variable=opcion_doc, value="RFC",
+                        bg=COLOR_PANEL, fg=COLOR_TEXT, selectcolor=COLOR_PANEL,
+                        activebackground=COLOR_PANEL, font=("Consolas", 10))
+rb_rfc.pack(side="left")
 
 
 # BOTÓN GUARDAR
