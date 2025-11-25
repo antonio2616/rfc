@@ -16,7 +16,7 @@ from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
 from tkinter import ttk
 from PIL import Image, ImageDraw, ImageFont, ImageTk
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 
@@ -425,8 +425,84 @@ def init_db():
             fecha TEXT NOT NULL
         )
     """)
+
+    c.execute("""
+    CREATE TABLE IF NOT EXISTS pagos (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        fecha_ultimo_pago TEXT NOT NULL
+    )
+""")
+    
+    # Crear registro inicial si no hay
+    c.execute("SELECT COUNT(*) FROM pagos")
+    if c.fetchone()[0] == 0:
+        c.execute("INSERT INTO pagos (fecha_ultimo_pago) VALUES (?)",
+              ("01-01-2000 00:00:00",))
+        
     conn.commit()
     conn.close()
+
+def obtener_ultimo_pago():
+    conn = sqlite3.connect(DB_NAME)
+    c = conn.cursor()
+    fecha = c.execute("SELECT fecha_ultimo_pago FROM pagos LIMIT 1").fetchone()[0]
+    conn.close()
+    return fecha
+
+def actualizar_ultimo_pago():
+    hoy = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
+    conn = sqlite3.connect(DB_NAME)
+    c = conn.cursor()
+    c.execute("UPDATE pagos SET fecha_ultimo_pago=?", (hoy,))
+    conn.commit()
+    conn.close()
+
+def calcular_pago_pendiente():
+    formato = "%d-%m-%Y %H:%M:%S"
+
+    fecha_ultima = obtener_ultimo_pago()
+    ultima = datetime.strptime(fecha_ultima, formato)
+
+    hoy = datetime.now()
+
+    conn = sqlite3.connect(DB_NAME)
+    c = conn.cursor()
+    c.execute("SELECT tipo, fecha FROM ventas WHERE estado='PAGADO'")
+    registros = c.fetchall()
+    conn.close()
+
+    total_actas = 0
+    total_rfc = 0
+
+    for tipo, fecha_txt in registros:
+        try:
+            fecha = datetime.strptime(fecha_txt, formato)
+        except:
+            continue
+
+        if fecha > ultima and fecha <= hoy:
+            if tipo == "ACTA":
+                total_actas += 40
+            elif tipo == "RFC":
+                total_rfc += 140
+
+    total_pago = total_actas + total_rfc
+
+    show_info(
+        "Pago a realizar",
+        f"📅 Desde: {fecha_ultima}\n"
+        f"📅 Hasta: {hoy.strftime('%d-%m-%Y %H:%M:%S')}\n\n"
+        f"🟦 ACTAS por pagar:  ${total_actas}\n"
+        f"🟨 RFC por pagar:    ${total_rfc}\n\n"
+        f"💰 TOTAL A PAGAR:    ${total_pago}\n\n"
+        f"👉 Presiona 'Confirmar Pago' para registrar el pago."
+    )
+
+    return total_pago
+
+def confirmar_pago():
+    actualizar_ultimo_pago()
+    show_info("Pago registrado", "El pago fue registrado correctamente.")
 
 # ========================= GUARDAR VENTA ==============================
 def guardar_venta():
@@ -457,7 +533,7 @@ def guardar_venta():
     conn = sqlite3.connect(DB_NAME)
     c = conn.cursor()
     c.execute("INSERT INTO ventas (telefono, curp, anticipo, resto, estado, fecha, tipo) VALUES (?,?,?,?,?,?,?)",
-              (tel, curp, anticipo, resto, estado, fecha, tipo_var.get()))
+              (tel, curp, anticipo, resto, estado, fecha, opcion_doc.get()))
     conn.commit()
     conn.close()
 
@@ -725,6 +801,50 @@ def validar_buscar(event):
         
     if len(texto) > 18:
         entry_buscar.delete(18, tk.END)
+
+
+#=========================TOTAL A PAGAR DE LA SEMANA==========
+def resumen_semanal():
+    conn = sqlite3.connect(DB_NAME)
+    c = conn.cursor()
+
+    # Fechas de hoy y hace 7 días
+    hoy = datetime.now()
+    hace_7 = hoy - timedelta(days=7)
+
+    formato = "%d-%m-%Y %H:%M:%S"
+
+    # Obtener TODAS las ventas pagadas
+    c.execute("SELECT tipo, fecha FROM ventas WHERE estado='PAGADO'")
+    registros = c.fetchall()
+
+    total_actas = 0
+    total_rfc = 0
+
+    for tipo, fecha_txt in registros:
+        try:
+            fecha = datetime.strptime(fecha_txt, formato)
+        except:
+            continue  # evitar errores
+
+        if fecha >= hace_7:
+            if tipo == "ACTA":
+                total_actas += 200 - 160   # Ganancia real
+            elif tipo == "RFC":
+                total_rfc += 200 - 60    # Ganancia real
+
+    total_general = total_actas + total_rfc
+
+    conn.close()
+
+    show_info(
+        "Resumen semanal",
+        f"📅 *PAGOS SEMANAL*\n\n"
+        f"🟦 ACTAS: ${total_actas}\n"
+        f"🟨 RFC:   ${total_rfc}\n\n"
+        f"💰 TOTAL GENERAL: ${total_general}"
+    )
+
 # ========================= INTERFAZ GRÁFICA ==============================
 root = tk.Tk()
 root.title("Control de Ventas - Ciber Lerdo")
@@ -814,6 +934,7 @@ rb_rfc = tk.Radiobutton(frame_radios, text="RFC", variable=opcion_doc, value="RF
                         bg=COLOR_PANEL, fg=COLOR_TEXT, selectcolor=COLOR_PANEL,
                         activebackground=COLOR_PANEL, font=("Consolas", 10))
 rb_rfc.pack(side="left")
+
 
 
 # BOTÓN GUARDAR
@@ -940,6 +1061,26 @@ btn_avisar = tk.Button(frame_btn, text=" 📢 Avisar",
                        command= avisar_whatsapp_web)
 style_button(btn_avisar, base_color="#E9BD0D", hover_color ="#EAB308")
 btn_avisar.grid(row=0, column=5, padx=5)
+
+btn_resumen = tk.Button(frame_btn, text="📅 Pago a Proveedor",
+                        fg="white", width=18,
+                        font=("Segoe UI Emoji", 10),
+                        command=resumen_semanal)
+style_button(btn_resumen, base_color="#7A5FFF", hover_color="#A08CFF")
+btn_resumen.grid(row=0, column=6, padx=5)
+
+btn_calcular = tk.Button(frame_btn, text="💵 Calcular Pago",
+                         fg="white", width=18,
+                         command=calcular_pago_pendiente)
+style_button(btn_calcular, base_color="#BB86FC", hover_color="#D4A5FF")
+btn_calcular.grid(row=0, column=7, padx=5)
+
+btn_confirmar = tk.Button(frame_btn, text="✔ Confirmar Pago",
+                          fg="white", width=18,
+                          command=confirmar_pago)
+style_button(btn_confirmar, base_color="#03DAC6", hover_color="#4DE4D8")
+btn_confirmar.grid(row=0, column=8, padx=5)
+
 
 
 # ========================= INICIO ==============================
