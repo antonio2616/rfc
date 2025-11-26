@@ -119,6 +119,151 @@ def avisar_whatsapp_web():
     show_info("WhatsApp", "Se abrió WhatsApp Web.\nSolo presiona ENVIAR.")
 
 
+""" def abrir_whatsapp_desktop():
+    try:
+        subprocess.Popen([
+            "explorer.exe",
+            "shell:AppsFolder\\5319275A.WhatsAppDesktop_cv1g1gvanyjgm!App"
+        ])
+        return True
+    except Exception as e:
+        show_error("Error", f"No pude abrir WhatsApp Desktop:\n{e}")
+        return False
+ """
+""" def enviar_aviso_desktop(numero):
+    import pyautogui
+    import pyperclip
+    import time
+
+    if not numero:
+        return
+
+    numero = numero.replace(" ", "").replace("-", "")
+
+    # Abrir WhatsApp Desktop
+    if not abrir_whatsapp_desktop():
+        return
+
+    time.sleep(4)
+
+    # -------------------------
+    #   BUSCAR EL NÚMERO
+    # -------------------------
+    # Click en la barra de búsqueda
+    pyautogui.click(200, 150)
+    time.sleep(1)
+
+    # Limpiar barra
+    pyautogui.hotkey("ctrl", "a")
+    pyautogui.press("backspace")
+    time.sleep(0.3)
+
+    # Escribir solo el número del cliente
+    pyperclip.copy(numero)
+    pyautogui.hotkey("ctrl", "v")
+    time.sleep(1)
+
+    # Abrir conversación
+    pyautogui.press("enter")
+    time.sleep(1.5)
+
+    # -------------------------
+    #   ENVIAR EL MENSAJE
+    # -------------------------
+    # Click en caja de mensaje
+    pyautogui.click(400, 700)
+    time.sleep(0.5)
+
+    mensaje = "Hola, tu documento ya está listo para recogerlo en Ciber Lerdo."
+    pyperclip.copy(mensaje)
+    pyautogui.hotkey("ctrl", "v")
+    time.sleep(0.4)
+
+    pyautogui.press("enter")
+
+    show_info("WhatsApp", "Mensaje enviado exitosamente por WhatsApp Desktop.")
+ """
+""" def crear_driver_whatsapp():
+    opciones = Options()
+    opciones.debugger_address = "127.0.0.1:9222"
+
+    driver = webdriver.Chrome(
+        service=Service(ChromeDriverManager().install()),
+        options=opciones
+    )
+    return driver
+ """
+""" def enviar_aviso_selenium(numero):
+    try:
+        numero = numero.replace(" ", "").replace("-", "")
+
+        driver = crear_driver_whatsapp()
+
+        # Abrir el chat del cliente
+        driver.get(f"https://web.whatsapp.com/send?phone=52{numero}")
+        time.sleep(5)
+
+        # Encontrar caja de mensaje
+        caja = encontrar_caja_mensaje(driver)
+        if caja:
+            caja.click()
+            caja.send_keys("Hola, tu documento ya está listo para recogerlo en Ciber Lerdo.")
+            time.sleep(1)
+
+        # Encontrar botón enviar
+        enviar = encontrar_boton_enviar(driver)
+        if enviar:
+            enviar.click()
+            show_info("WhatsApp", "Mensaje de aviso enviado automáticamente.")
+            return
+
+        show_error("Error", "No se pudo encontrar el botón de enviar.")
+
+    except Exception as e:
+        show_error("Error", f"No se pudo enviar el mensaje:\n{e}")
+ """
+""" def encontrar_caja_mensaje(driver):
+    xpaths = [
+        "//div[@title='Escribe un mensaje']",
+        "//p[@class='selectable-text copyable-text']",
+        "//div[contains(@class,'copyable-text selectable-text')]",
+        "//div[@data-tab='10']",
+        "//footer//p",
+        "//footer//div[contains(@class,'selectable-text')]",
+        "//div[@aria-placeholder='Escribe un mensaje']",
+        "//div[contains(@aria-label,'mensaje')]",
+        "//div[contains(@class,'_ak1l')]",
+        "//div[contains(@class,'_ak1y')]",
+    ]
+
+    for xp in xpaths:
+        try:
+            return driver.find_element(By.XPATH, xp)
+        except:
+            pass
+
+    return None
+ """
+""" def encontrar_boton_enviar(driver):
+    xpaths = [
+        "//span[@data-icon='send']",
+        "//button[@aria-label='Enviar']",
+        "//span[contains(@data-icon,'send')]",
+        "//div[@aria-label='Enviar']",
+        "//div[@role='button']//*[name()='svg']",
+        "//button[contains(@class,'_ak1l')]",
+        "//button[@data-tab='6']",
+        "//span[@data-icon='send-outline']",
+    ]
+
+    for xp in xpaths:
+        try:
+            return driver.find_element(By.XPATH, xp)
+        except:
+            pass
+
+    return None
+ """
 
 # ========================= BASE DE DATOS COMPARTIDA (MULTI-PC) ==============================
 def get_tickets_path():
@@ -208,7 +353,7 @@ def style_button(btn, base_color=COLOR_PRIMARY, hover_color="#1F8CFF"):
     btn.bind("<Leave>", on_leave)
 
 # ========================= MESSAGEBOX OSCUROS (MATERIAL DARK) ==============================
-def dark_messagebox(title, message, kind="info", extra_buttons=None):
+def dark_messagebox(title, message, kind="info"):
     icon_map = {
         "info": "ℹ️",
         "warning": "⚠️",
@@ -237,32 +382,15 @@ def dark_messagebox(title, message, kind="info", extra_buttons=None):
                        fg=COLOR_TEXT,
                        justify="left",
                        font=("Consolas", 10),
-                       wraplength=300)
+                       wraplength=260)
     lbl_msg.grid(row=0, column=1, sticky="w")
 
-    # ====== BOTON ACEPTAR ======
-    btn_frame = tk.Frame(frame, bg=COLOR_PANEL)
-    btn_frame.grid(row=1, column=0, columnspan=2, pady=(15, 0))
+    btn = tk.Button(frame, text="Aceptar", fg="white",
+                    font=("Consolas", 10),
+                    command=win.destroy)
+    style_button(btn, base_color=COLOR_PRIMARY)
+    btn.grid(row=1, column=0, columnspan=2, pady=(15, 0))
 
-    btn_ok = tk.Button(btn_frame, text="Aceptar", fg="white",
-                       font=("Consolas", 10),
-                       command=win.destroy)
-    style_button(btn_ok, base_color=COLOR_PRIMARY)
-    btn_ok.pack(side="left", padx=5)
-
-    # ====== BOTONES EXTRA ======
-    if extra_buttons:
-        for (texto, funcion, color) in extra_buttons:
-            def generar_cmd(f=funcion):
-                return lambda: (win.destroy(), f())
-
-            btn_extra = tk.Button(btn_frame, text=texto, fg="white",
-                                  font=("Consolas", 10),
-                                  command=generar_cmd())
-            style_button(btn_extra, base_color=color)
-            btn_extra.pack(side="left", padx=5)
-
-    # Centrado
     win.update_idletasks()
     w = win.winfo_width()
     h = win.winfo_height()
@@ -271,7 +399,6 @@ def dark_messagebox(title, message, kind="info", extra_buttons=None):
     win.geometry(f"{w}x{h}+{x}+{y}")
 
     root.wait_window(win)
-
 
 def show_info(title, msg):
     dark_messagebox(title, msg, "info")
@@ -300,6 +427,68 @@ def init_db():
     """)
     conn.commit()
     conn.close()
+
+def obtener_ultimo_pago():
+    conn = sqlite3.connect(DB_NAME)
+    c = conn.cursor()
+    fecha = c.execute("SELECT fecha_ultimo_pago FROM pagos LIMIT 1").fetchone()[0]
+    conn.close()
+    return fecha
+
+def actualizar_ultimo_pago():
+    hoy = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
+    conn = sqlite3.connect(DB_NAME)
+    c = conn.cursor()
+    c.execute("UPDATE pagos SET fecha_ultimo_pago=?", (hoy,))
+    conn.commit()
+    conn.close()
+
+def calcular_pago_pendiente():
+    formato = "%d-%m-%Y %H:%M:%S"
+
+    fecha_ultima = obtener_ultimo_pago()
+    ultima = datetime.strptime(fecha_ultima, formato)
+
+    hoy = datetime.now()
+
+    conn = sqlite3.connect(DB_NAME)
+    c = conn.cursor()
+    c.execute("SELECT tipo, fecha FROM ventas WHERE estado='PAGADO'")
+    registros = c.fetchall()
+    conn.close()
+
+    total_actas = 0
+    total_rfc = 0
+
+    for tipo, fecha_txt in registros:
+        try:
+            fecha = datetime.strptime(fecha_txt, formato)
+        except:
+            continue
+
+        if fecha > ultima and fecha <= hoy:
+            if tipo == "ACTA":
+                total_actas += 40
+            elif tipo == "RFC":
+                total_rfc += 140
+
+    total_pago = total_actas + total_rfc
+
+    show_info(
+        "Pago a realizar",
+        f"📅 Desde: {fecha_ultima}\n"
+        f"📅 Hasta: {hoy.strftime('%d-%m-%Y %H:%M:%S')}\n\n"
+        f"🟦 ACTAS por pagar:  ${total_actas}\n"
+        f"🟨 RFC por pagar:    ${total_rfc}\n\n"
+        f"💰 TOTAL A PAGAR:    ${total_pago}\n\n"
+        f"👉 Presiona 'Confirmar Pago' para registrar el pago."
+    )
+
+    return total_pago
+
+def confirmar_pago():
+    actualizar_ultimo_pago()
+    show_info("Pago registrado", "El pago fue registrado correctamente.")
 
 # ========================= GUARDAR VENTA ==============================
 def guardar_venta():
@@ -330,7 +519,7 @@ def guardar_venta():
     conn = sqlite3.connect(DB_NAME)
     c = conn.cursor()
     c.execute("INSERT INTO ventas (telefono, curp, anticipo, resto, estado, fecha, tipo) VALUES (?,?,?,?,?,?,?)",
-              (tel, curp, anticipo, resto, estado, fecha, tipo_var.get()))
+              (tel, curp, anticipo, resto, estado, fecha, opcion_doc.get()))
     conn.commit()
     conn.close()
 
@@ -509,16 +698,8 @@ def generar_ticket():
     archivo = os.path.join(TICKETS_FOLDER, f"ticket_{curp4}.png")
     img.save(archivo)
 
-    #show_info("Ticket listo", f"El ticket se guardó en:\n{archivo}")
-    dark_messagebox(
-        "Ticket listo",
-        f"El ticket se guardó en:\n{archivo}",
-        kind="info",
-        extra_buttons=[
-            ("📨 Enviar Ticket", lambda: enviar_ticket_whatsapp(), "#0A84FF")
-        ]
-    )
-
+    show_info("Ticket listo", f"El ticket se guardó en:\n{archivo}")
+  
 # ========================= BUSCAR CURP ==============================
 def buscar_curp():
     cargar_ventas(entry_buscar.get().strip())
@@ -606,6 +787,50 @@ def validar_buscar(event):
         
     if len(texto) > 18:
         entry_buscar.delete(18, tk.END)
+
+
+#=========================TOTAL A PAGAR DE LA SEMANA==========
+def resumen_semanal():
+    conn = sqlite3.connect(DB_NAME)
+    c = conn.cursor()
+
+    # Fechas de hoy y hace 7 días
+    hoy = datetime.now()
+    hace_7 = hoy - timedelta(days=7)
+
+    formato = "%d-%m-%Y %H:%M:%S"
+
+    # Obtener TODAS las ventas pagadas
+    c.execute("SELECT tipo, fecha FROM ventas WHERE estado='PAGADO'")
+    registros = c.fetchall()
+
+    total_actas = 0
+    total_rfc = 0
+
+    for tipo, fecha_txt in registros:
+        try:
+            fecha = datetime.strptime(fecha_txt, formato)
+        except:
+            continue  # evitar errores
+
+        if fecha >= hace_7:
+            if tipo == "ACTA":
+                total_actas += 200 - 160   # Ganancia real
+            elif tipo == "RFC":
+                total_rfc += 200 - 60    # Ganancia real
+
+    total_general = total_actas + total_rfc
+
+    conn.close()
+
+    show_info(
+        "Resumen semanal",
+        f"📅 *PAGOS SEMANAL*\n\n"
+        f"🟦 ACTAS: ${total_actas}\n"
+        f"🟨 RFC:   ${total_rfc}\n\n"
+        f"💰 TOTAL GENERAL: ${total_general}"
+    )
+
 # ========================= INTERFAZ GRÁFICA ==============================
 root = tk.Tk()
 root.title("Control de Ventas - Ciber Lerdo")
@@ -807,12 +1032,12 @@ btn_ticket = tk.Button(frame_btn, text="🧾 Generar Ticket",
 style_button(btn_ticket, base_color="#2563EB", hover_color="#1D4ED8")
 btn_ticket.grid(row=0, column=1, padx=5)
 
-# btn_ticket_whatsapp = tk.Button(frame_btn, text="📨 Enviar Ticket",
-#                        fg="black", width=18,
-#                        font=("Segoe UI Emoji", 10),
-#                        command=enviar_ticket_whatsapp)
-# style_button(btn_ticket_whatsapp, base_color="#06B6D4", hover_color="#0891B2")
-# btn_ticket_whatsapp.grid(row=0, column=3, padx=5)
+btn_ticket_whatsapp = tk.Button(frame_btn, text="📨 Enviar Ticket",
+                       fg="black", width=18,
+                       font=("Segoe UI Emoji", 10),
+                       command=enviar_ticket_whatsapp)
+style_button(btn_ticket_whatsapp, base_color="#06B6D4", hover_color="#0891B2")
+btn_ticket_whatsapp.grid(row=0, column=3, padx=5)
 
 
 btn_avisar = tk.Button(frame_btn, text=" 📢 Avisar",
@@ -821,6 +1046,26 @@ btn_avisar = tk.Button(frame_btn, text=" 📢 Avisar",
                        command= avisar_whatsapp_web)
 style_button(btn_avisar, base_color="#E9BD0D", hover_color ="#EAB308")
 btn_avisar.grid(row=0, column=5, padx=5)
+
+btn_resumen = tk.Button(frame_btn, text="📅 Pago a Proveedor",
+                        fg="white", width=18,
+                        font=("Segoe UI Emoji", 10),
+                        command=resumen_semanal)
+style_button(btn_resumen, base_color="#7A5FFF", hover_color="#A08CFF")
+btn_resumen.grid(row=0, column=6, padx=5)
+
+btn_calcular = tk.Button(frame_btn, text="💵 Calcular Pago",
+                         fg="white", width=18,
+                         command=calcular_pago_pendiente)
+style_button(btn_calcular, base_color="#BB86FC", hover_color="#D4A5FF")
+btn_calcular.grid(row=0, column=7, padx=5)
+
+btn_confirmar = tk.Button(frame_btn, text="✔ Confirmar Pago",
+                          fg="white", width=18,
+                          command=confirmar_pago)
+style_button(btn_confirmar, base_color="#03DAC6", hover_color="#4DE4D8")
+btn_confirmar.grid(row=0, column=8, padx=5)
+
 
 
 # ========================= INICIO ==============================
