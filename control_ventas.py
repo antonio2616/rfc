@@ -474,6 +474,25 @@ def abrir_whatsapp_web(numero, texto):
     else:
         # Si falla, usa default
         webbrowser.open(url)
+        
+        
+#===========================MARCAR ENTREGADO============================
+
+def marcar_entregado():
+    vid = obtener_id()
+    if not vid:
+        show_warning("Error", "Seleccione una venta.")
+        return
+
+    conn = sqlite3.connect(DB_NAME)
+    c = conn.cursor()
+    c.execute("UPDATE ventas SET estado='ENTREGADO' WHERE id=?", (vid,))
+    conn.commit()
+    conn.close()
+
+    cargar_ventas()
+    show_info("Entrega registrada", "El documento fue marcado como ENTREGADO.")
+
 
 # ========================= GENERAR TICKET ==============================
 def generar_ticket():
@@ -911,14 +930,14 @@ btn_pagado = tk.Button(frame_btn, text="✅ Marcar Pagado",
                        font=("Segoe UI Emoji", 10),
                        command=marcar_pagado)
 style_button(btn_pagado, base_color="#22C55E", hover_color="#16A34A")
-btn_pagado.grid(row=0, column=0, padx=5)
+btn_pagado.grid(row=0, column=1, padx=5)
 
 btn_ticket = tk.Button(frame_btn, text="🧾 Generar Ticket",
                        fg="white", width=18,
                        font=("Segoe UI Emoji", 10),
                        command=generar_ticket)
 style_button(btn_ticket, base_color="#2563EB", hover_color="#1D4ED8")
-btn_ticket.grid(row=0, column=1, padx=5)
+btn_ticket.grid(row=0, column=0, padx=5)
 
 # btn_ticket_whatsapp = tk.Button(frame_btn, text="📨 Enviar Ticket",
 #                        fg="black", width=18,
@@ -926,14 +945,21 @@ btn_ticket.grid(row=0, column=1, padx=5)
 #                        command=enviar_ticket_whatsapp)
 # style_button(btn_ticket_whatsapp, base_color="#06B6D4", hover_color="#0891B2")
 # btn_ticket_whatsapp.grid(row=0, column=3, padx=5)
-
-
 btn_avisar = tk.Button(frame_btn, text=" 📢 Avisar",
                        fg="black", width=18,
                        font=("Segoe UI Emoji", 10),
                        command= avisar_whatsapp_web)
 style_button(btn_avisar, base_color="#E9BD0D", hover_color ="#EAB308")
-btn_avisar.grid(row=0, column=5, padx=5)
+btn_avisar.grid(row=0, column=2, padx=5)
+
+
+btn_entregado = tk.Button(frame_btn, text="📦 Marcar Entregado",
+                          fg="black", width=18,
+                          font=("Segoe UI Emoji", 10),
+                          command=marcar_entregado)
+style_button(btn_entregado, base_color="#FA6915", hover_color="#DB7F42")
+btn_entregado.grid(row=0, column=5, padx=5)
+
 
 # btn_resumen = tk.Button(frame_btn, text="📅 Pago a Proveedor",
 #                         fg="white", width=18,
