@@ -298,6 +298,16 @@ def init_db():
     """)
     conn.commit()
     conn.close()
+#==================OBTENER ESTADO==================  
+def obtener_estado_seleccionado():
+    sel = tabla.focus()
+    if not sel:
+        return None
+    data = tabla.item(sel)["values"]
+    return data[6]  # columna Estado
+#=================================================
+
+#=================OBTENER ULTIMO PAGO=============
 
 def obtener_ultimo_pago():
     conn = sqlite3.connect(DB_NAME)
@@ -305,6 +315,9 @@ def obtener_ultimo_pago():
     fecha = c.execute("SELECT fecha_ultimo_pago FROM pagos LIMIT 1").fetchone()[0]
     conn.close()
     return fecha
+#================================================
+
+#============ACTUALIZAR ULTIMO PAGO==============
 
 def actualizar_ultimo_pago():
     hoy = datetime.now().strftime("%d-%m-%Y %H:%M:%S")
@@ -313,6 +326,8 @@ def actualizar_ultimo_pago():
     c.execute("UPDATE pagos SET fecha_ultimo_pago=?", (hoy,))
     conn.commit()
     conn.close()
+    
+#==================Pago Pendiente================
 
 def calcular_pago_pendiente():
     formato = "%d-%m-%Y %H:%M:%S"
@@ -365,12 +380,17 @@ def calcular_pago_pendiente():
     )
 
     return total_pago
+#======================================================
+
+#=================Confirmar Pago=======================
 
 def confirmar_pago():
     actualizar_ultimo_pago()
     show_info("Pago registrado", "El pago fue registrado correctamente.")
+    
+#======================================================
 
-# ========================= GUARDAR VENTA ==============================
+# ========================= GUARDAR VENTA =============
 def guardar_venta():
     tel = entry_telefono.get().strip()
     curp = entry_curp.get().strip().upper()
@@ -406,6 +426,7 @@ def guardar_venta():
     cargar_ventas()
     actualizar_dashboard()
     limpiar()
+#=================================================
 
 # ========================= LIMPIAR ==============================
 def limpiar():
@@ -921,7 +942,7 @@ tabla.tag_configure("even", background="#252526")
 tabla.tag_configure("pendiente", background="#5A1E1E", foreground="#EFA5A5")
 tabla.tag_configure("pagado", background="#1E4A1E", foreground="#A5EFA5")
 
-# BOTONES INFERIORES
+# ======================BOTONES INFERIORES========================================
 frame_btn = tk.Frame(root, bg=COLOR_BG)
 frame_btn.pack(pady=10)
 
